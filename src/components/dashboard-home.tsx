@@ -7,7 +7,7 @@ import { GroupCard, type Group } from "@/src/components/group-card"
 import { EmptyGroups } from "@/src/components/empty-groups"
 import { supabase } from "@/lib/supabaseClient"
 import { useUser } from "@/lib/useUser"
-
+import { JoinGroupModal } from "@/src/components/join-group-modal"
 
 const GROUPS: Group[] = [
   {
@@ -78,7 +78,7 @@ export function DashboardHome() {
 
       <section className="mt-10">
         <h1 className="text-pretty font-serif text-3xl font-bold text-foreground sm:text-4xl">
-          Good afternoon, Matt {" "}
+          Good afternoon, Jamie{" "}
           <span role="img" aria-label="waving hand">
             👋
           </span>
@@ -87,20 +87,14 @@ export function DashboardHome() {
       </section>
 
       <section className="mt-6 flex flex-col gap-3">
-        <button
-          type="button"
+        <a
+          href="/groups/new"
           className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-bold text-primary-foreground shadow-[0_12px_26px_-10px_rgba(232,96,76,0.65)] transition-colors hover:bg-primary/90"
         >
           <Plus className="h-5 w-5" aria-hidden="true" />
           Create Group
-        </button>
-        <button
-          type="button"
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card text-base font-bold text-foreground transition-colors hover:bg-accent"
-        >
-          <Users className="h-5 w-5" aria-hidden="true" />
-          Join with Code
-        </button>
+        </a>
+        <JoinGroupModal />
       </section>
 
       <section className="mt-10">
