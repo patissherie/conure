@@ -14,14 +14,16 @@ export async function searchNearbyPlaces(params: {
   lat: number;
   lng: number;
   radiusMeters?: number;
-  includedType?: string; // e.g. "restaurant", "bar", "tourist_attraction"
+  includedType?: string;
+  minPrice?: number; // 1-4
+  maxPrice?: number; // 1-4
 }): Promise<ExternalPlace[]> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) {
     throw new Error('GOOGLE_PLACES_API_KEY is missing from .env.local');
   }
 
-  const body = {
+  const body: any = {
     includedTypes: params.includedType ? [params.includedType] : undefined,
     maxResultCount: 10,
     locationRestriction: {

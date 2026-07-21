@@ -281,3 +281,43 @@ export async function upsertPlacesFromExternal(
   }
   return results;
 }
+
+export function filterPlacesByBudget(
+  places: ExternalPlace[],
+  range: BudgetRange
+): ExternalPlace[] {
+  if (!range) return places; // no group budget constraint, return everything
+  return places.filter(
+    (p) =>
+      p.price_level !== null &&
+      p.price_level >= range.min &&
+      p.price_level <= range.max
+  );
+}
+
+export type BudgetRange = { min: number; max: number } | null;
+
+export async function getGroupBudgetRange(
+  groupId: string
+): Promise<BudgetRange> {
+  const { data, error } = await supabase
+    .from('group_members')
+    .select('users(budget_min, budget_max)')
+    .eq('group_id', groupId);
+
+  if (error) throw error;
+  if (!data || data.length === 0) return null;
+
+  const budgets = data.map((row: any) => row.users).filter(Boolean) as {
+    budget_min: number;
+    budget_max: number;
+  }[];
+
+  const min = Math.max(...budgets.map((b) => b.budget_min));
+  const max = Math.min(...budgets.map((b) => b.budget_max));
+
+  // No overlap exists — nobody's ranges agree
+  if (min > max) return null;
+
+  return { min, max };
+}
