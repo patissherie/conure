@@ -31,6 +31,7 @@ const STAGE_STYLES: Record<
 }
 
 export type Group = {
+  id: string
   name: string
   members: number
   memberNames: string[]
@@ -43,7 +44,7 @@ export function GroupCard({ group }: { group: Group }) {
 
   return (
     <Link
-      href="/group-dashboard"
+      href={`/group-dashboard/${group.id}`}
       className="group flex items-center gap-4 rounded-3xl bg-card p-5 shadow-[0_12px_30px_-18px_rgba(61,43,36,0.45)] ring-1 ring-black/[0.03] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-18px_rgba(61,43,36,0.5)]"
     >
       <div className="min-w-0 flex-1">

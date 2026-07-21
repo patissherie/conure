@@ -11,31 +11,6 @@ import { Button } from './ui/button'
 import { useUser } from '@/lib/useUser'
 import { supabase } from '@/lib/supabaseClient'
 
-
-const GROUPS: Group[] = [
-  {
-    name: "Coffee Lovers",
-    members: 4,
-    memberNames: ["Tino", "Aditri", "Matt", "Sherleen"],
-    stage: "voting",
-    message: "Everyone is free! Time to vote on an activity.",
-  },
-  {
-    name: "Friday Fun",
-    members: 5,
-    memberNames: ["Tino", "Aditri", "Matt", "Sherleen", "Random"],
-    stage: "finding",
-    message: "3 of 5 members submitted availability.",
-  },
-  {
-    name: "Foodies",
-    members: 3,
-    memberNames: ["Tino", "Aditri", "Sherleen"],
-    stage: "confirmed",
-    message: "Hangout confirmed for Friday at 7:00 PM.",
-  },
-]
-
 export function DashboardHome() {
   const { user } = useUser()
   const [groups, setGroups] = useState<Group[]>([])
@@ -54,26 +29,77 @@ export function DashboardHome() {
     
     // const user_name = user.user_metadata
     async function loadGroups() {
+    if (!user) return
+  
     const { data, error } = await supabase
       .from('group_members')
       .select('groups(id, name, group_members(user_id, users(name, avatar_url)))')
-      .eq('user_id', user?.id)
-    
+      .eq('user_id', user.id)
+  
     if (error || !data) {
       setLoading(false)
       return
     }
-    const shaped: Group[] = data.map((row: any) => {
-      const g = row.groups
-      return {
-        name: g.name,
-        members: g.group_members?.length ?? 0,
-        memberNames: g.group_members?.map((m: any) => m.users?.name).filter(Boolean) ?? [],
-        avatars: g.group_members?.map((m: any) => m.users?.avatar_url).filter(Boolean) ?? [],
-        stage: "finding",   // placeholder — you don't have a "stage" concept in your schema yet
-        message: "",         // placeholder — same issue
-      }
-    })
+  
+    // For each group, fetch its most recent event (if any) + rsvps + confirmed place
+    const shaped: Group[] = await Promise.all(
+      data.map(async (row: any) => {
+        const g = row.groups
+        const memberCount = g.group_members?.length ?? 0
+        const memberNames = g.group_members?.map((m: any) => m.users?.name).filter(Boolean) ?? []
+        const avatars = g.group_members?.map((m: any) => m.users?.avatar_url).filter(Boolean) ?? []
+  
+        // Get the most recent event for this group
+        const { data: events } = await supabase
+          .from('events')
+          .select('*, rsvps(status), places:confirmed_place_id(name)')
+          .eq('group_id', g.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+  
+        const event = events?.[0]
+  
+        let stage: Group['stage'] = 'finding'
+        let message = 'No hangout planned yet — start one!'
+  
+        if (event) {
+          const rsvps = event.rsvps ?? []
+          const yesCount = rsvps.filter((r: any) => r.status === 'yes').length
+  
+          if (event.status === 'planning') {
+            stage = 'finding'
+            message = `${yesCount} of ${memberCount} members submitted availability.`
+          } else if (event.status === 'time_locked') {
+            stage = 'voting'
+            message = 'Everyone is free! Time to vote on an activity.'
+          } else if (event.status === 'place_locked' || event.status === 'done') {
+            stage = 'confirmed'
+            const placeName = event.places?.name
+            const when = event.confirmed_time
+              ? new Date(event.confirmed_time).toLocaleString(undefined, {
+                  weekday: 'long',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                })
+              : ''
+            message = placeName
+              ? `Hangout confirmed at ${placeName}${when ? ` on ${when}` : ''}.`
+              : `Hangout confirmed${when ? ` for ${when}` : ''}.`
+          }
+        }
+  
+        return {
+          id: g.id,
+          name: g.name,
+          members: memberCount,
+          memberNames,
+          avatars,
+          stage,
+          message,
+        }
+      })
+    )
+
 
     setGroups(shaped)
     setLoading(false)
