@@ -1,7 +1,8 @@
-import { Plus, Users } from "lucide-react"
+import { Plus } from "lucide-react"
 import { DashboardNav } from "@/src/components/dashboard-nav"
 import { GroupCard, type Group } from "@/src/components/group-card"
 import { EmptyGroups } from "@/src/components/empty-groups"
+import { JoinGroupModal } from "@/src/components/join-group-modal"
 
 const GROUPS: Group[] = [
   {
@@ -52,13 +53,7 @@ export function DashboardHome() {
           <Plus className="h-5 w-5" aria-hidden="true" />
           Create Group
         </a>
-        <button
-          type="button"
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border-2 border-border bg-card text-base font-bold text-foreground transition-colors hover:bg-accent"
-        >
-          <Users className="h-5 w-5" aria-hidden="true" />
-          Join with Code
-        </button>
+        <JoinGroupModal />
       </section>
 
       <section className="mt-10">
