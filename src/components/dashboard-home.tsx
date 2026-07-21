@@ -1,7 +1,13 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { Plus, Users } from "lucide-react"
 import { DashboardNav } from "@/src/components/dashboard-nav"
 import { GroupCard, type Group } from "@/src/components/group-card"
 import { EmptyGroups } from "@/src/components/empty-groups"
+import { supabase } from "@/lib/supabaseClient"
+import { useUser } from "@/lib/useUser"
+
 
 const GROUPS: Group[] = [
   {
@@ -28,7 +34,43 @@ const GROUPS: Group[] = [
 ]
 
 export function DashboardHome() {
-  const hasGroups = GROUPS.length > 0
+  const { user } = useUser()
+  const [groups, setGroups] = useState<Group[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user) return
+
+    async function loadGroups() {
+    const { data, error } = await supabase
+      .from('group_members')
+      .select('groups(id, name, group_members(user_id, users(avatar_url)))')
+      .eq('user_id', user.id)
+    
+    if (error || !data) {
+      setLoading(false)
+      return
+    }
+
+    const shaped: Group[] = data.map((row: any) => {
+      const g = row.groups
+      return {
+        name: g.name,
+        members: g.group_members?.length ?? 0,
+        avatars: g.group_members?.map((m: any) => m.users?.avatar_url).filter(Boolean) ?? [],
+        stage: "finding",   // placeholder — you don't have a "stage" concept in your schema yet
+        message: "",         // placeholder — same issue
+      }
+    })
+
+    setGroups(shaped)
+    setLoading(false)
+  }
+
+    loadGroups()
+  }, [user])
+
+  const hasGroups = groups.length > 0
 
   return (
     <main className="mx-auto w-full max-w-2xl px-5 py-8 sm:px-6 sm:py-10">

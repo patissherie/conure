@@ -5,6 +5,7 @@ import { useState } from "react"
 import { User, Mail, Lock, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { HuddleLogo } from "@/src/components/huddle-logo"
+import { supabase } from "@/lib/supabaseClient"
 
 export function SignupCard() {
   const [fullName, setFullName] = useState("")
@@ -13,11 +14,41 @@ export function SignupCard() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // Hook up account creation here.
-    console.log("[v0] Sign up submitted:", { fullName, email })
+    setError(null)
+
+    if (password !== confirmPassword) {
+      setError("Passwords don't match")
+      return
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },   // this becomes raw_user_meta_data -> used by your trigger
+      },
+    })
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    // Since your trigger auto-creates the public.users row on signup,
+    // nothing else to do here except redirect.
+    window.location.href = "/dashboard"   // or wherever, once email confirmation is off
+  }
+
+  async function handleGoogleSignup() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (error) setError(error.message)
   }
 
   return (
@@ -39,6 +70,7 @@ export function SignupCard() {
       <Button
         type="button"
         variant="outline"
+        onClick={handleGoogleSignup}
         className="h-12 w-full gap-3 rounded-2xl border-border bg-card text-base font-semibold text-foreground hover:bg-accent"
       >
         <GoogleIcon className="h-5 w-5" />
@@ -131,6 +163,7 @@ export function SignupCard() {
           />
         </Field>
 
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <Button
           type="submit"
           className="mt-2 h-14 w-full rounded-2xl bg-primary text-base font-bold text-primary-foreground shadow-[0_10px_24px_-8px_rgba(232,96,76,0.6)] hover:bg-primary/90"

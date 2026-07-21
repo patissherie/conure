@@ -22,7 +22,7 @@ export function LoginCard() {
       return
     }
 
-    window.location.href = "/swipe-demo"   // redirect wherever your main app page is. /swipe-demo is a dummy page.
+    window.location.href = "/dashboard"   // redirect wherever your main app page is. /swipe-demo is a dummy page.
   }
 
   async function handleGoogleLogin() {
