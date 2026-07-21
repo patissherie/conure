@@ -15,8 +15,9 @@ const nunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Sign in to Huddle",
-  description: "Plan your next group hangout with Huddle.",
+  title: "Huddle",
+  description:
+  "Huddle helps friends automatically find a time when everyone is available using Google Calendar, then decide what to do together."
 };
 
 export const viewport: Viewport = {

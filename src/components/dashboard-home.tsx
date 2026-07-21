@@ -8,21 +8,21 @@ const GROUPS: Group[] = [
   {
     name: "Coffee Lovers",
     members: 5,
-    avatars: ["/avatars/a1.png", "/avatars/a2.png", "/avatars/a3.png", "/avatars/a4.png"],
+    memberNames: ["Tino", "Aditri", "Matt", "Sherleen"],
     stage: "finding",
     message: "3 of 5 members submitted availability.",
   },
   {
     name: "Friday Fun",
     members: 6,
-    avatars: ["/avatars/a5.png", "/avatars/a6.png", "/avatars/a1.png", "/avatars/a3.png"],
+    memberNames: ["Tino", "Aditri", "Matt", "Sherleen"],
     stage: "voting",
     message: "Everyone is free! Time to vote on an activity.",
   },
   {
     name: "Foodies",
     members: 4,
-    avatars: ["/avatars/a2.png", "/avatars/a4.png", "/avatars/a6.png"],
+    memberNames: ["Tino", "Aditri", "Sherleen"],
     stage: "confirmed",
     message: "Hangout confirmed for Friday at 7:00 PM.",
   },
@@ -37,7 +37,7 @@ export function DashboardHome() {
 
       <section className="mt-10">
         <h1 className="text-pretty font-serif text-3xl font-bold text-foreground sm:text-4xl">
-          Good afternoon, Jamie{" "}
+          Good afternoon, Matt{" "}
           <span role="img" aria-label="waving hand">
             👋
           </span>
