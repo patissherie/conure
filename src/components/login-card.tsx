@@ -2,6 +2,9 @@
 
 import type React from "react"
 import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+
 import { Button } from "@/src/components/ui/button"
 import { HuddleLogo } from "@/src/components/huddle-logo"
 import { supabase } from "@/lib/supabaseClient"
@@ -9,46 +12,61 @@ import { supabase } from "@/lib/supabaseClient"
 export function LoginCard() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null) 
+  const [error, setError] = useState<string | null>(null)
+
+  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
     if (error) {
       setError(error.message)
       return
     }
 
-    window.location.href = "/swipe-demo"   // redirect wherever your main app page is. /swipe-demo is a dummy page.
+    // Redirect to dashboard after successful login
+    router.push("/dashboard")
   }
 
   async function handleGoogleLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
-    if (error) setError(error.message)
+
+    if (error) {
+      setError(error.message)
+    }
   }
 
   return (
     <div className="w-full max-w-md rounded-[24px] bg-card px-8 py-10 shadow-[0_24px_60px_-20px_rgba(61,43,36,0.35)]">
-      {/* Logo + wordmark */}
+      {/* Logo + Wordmark */}
       <div className="mb-8 flex items-center justify-center gap-3">
         <HuddleLogo className="h-10 w-10" />
-        <span className="font-serif text-3xl font-bold tracking-tight text-foreground">Huddle</span>
+        <span className="font-serif text-3xl font-bold tracking-tight text-foreground">
+          Huddle
+        </span>
       </div>
 
       <div className="mb-7 text-center">
-        <h1 className="font-serif text-2xl font-bold text-foreground text-balance">Welcome back</h1>
+        <h1 className="font-serif text-2xl font-bold text-foreground text-balance">
+          Welcome back
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground text-pretty">
           Sign in to plan your next hangout.
         </p>
       </div>
 
-      {/* Continue with Google */}
+      {/* Google Sign In */}
       <Button
         type="button"
         variant="outline"
@@ -62,15 +80,22 @@ export function LoginCard() {
       {/* Divider */}
       <div className="my-6 flex items-center gap-4">
         <span className="h-px flex-1 bg-border" />
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">or</span>
+        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          or
+        </span>
         <span className="h-px flex-1 bg-border" />
       </div>
 
+      {/* Login Form */}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="email" className="text-sm font-semibold text-foreground">
+          <label
+            htmlFor="email"
+            className="text-sm font-semibold text-foreground"
+          >
             Email
           </label>
+
           <input
             id="email"
             type="email"
@@ -84,9 +109,13 @@ export function LoginCard() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="password" className="text-sm font-semibold text-foreground">
+          <label
+            htmlFor="password"
+            className="text-sm font-semibold text-foreground"
+          >
             Password
           </label>
+
           <input
             id="password"
             type="password"
@@ -99,7 +128,11 @@ export function LoginCard() {
           />
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="text-sm text-red-600">
+            {error}
+          </p>
+        )}
 
         <Button
           type="submit"
@@ -109,11 +142,15 @@ export function LoginCard() {
         </Button>
       </form>
 
+      {/* Sign Up Link */}
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        {"Don't have an account? "}
-        <a href="#" className="font-semibold text-primary hover:underline">
-          Sign up.
-        </a>
+        Don't have an account?{" "}
+        <Link
+          href="/signup"
+          className="font-semibold text-primary hover:underline"
+        >
+          Sign up
+        </Link>
       </p>
     </div>
   )
@@ -121,7 +158,12 @@ export function LoginCard() {
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
       <path
         fill="#4285F4"
         d="M23.52 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.87Z"

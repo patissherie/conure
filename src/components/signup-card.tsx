@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import Link from "next/link"
 import { User, Mail, Lock, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { HuddleLogo } from "@/src/components/huddle-logo"
@@ -140,10 +141,10 @@ export function SignupCard() {
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        {"Already have an account? "}
-        <a href="/" className="font-semibold text-primary hover:underline">
+        Already have an account?{" "}
+        <Link href="/login" className="font-semibold text-primary hover:underline">
           Sign In
-        </a>
+        </Link>
       </p>
     </div>
   )
