@@ -185,13 +185,20 @@ function RecommendationsContent() {
       <main className="mx-auto w-full max-w-2xl px-5 pb-16">
         <div className="rounded-3xl bg-card p-6 shadow-[0_20px_50px_-20px_rgba(61,43,36,0.25)] sm:p-8">
           <div className="mb-5 flex items-center justify-between">
-            <Link
-              href="/choose-category"
-              className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            <button
+            type="button"
+            onClick={() => {
+                if (index > 0) {
+                setIndex((i) => i - 1)
+                } else {
+                router.push("/choose-category")
+                }
+            }}
+            className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
-              <ArrowLeft className="h-4 w-4" strokeWidth={2.5} />
-              Back
-            </Link>
+            <ArrowLeft className="h-4 w-4" strokeWidth={2.5} />
+            Back
+            </button>
             <span className="text-sm font-semibold text-muted-foreground">
               {index + 1} of {recommendations.length}
             </span>
