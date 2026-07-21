@@ -1,20 +1,29 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/src/components/ui/button"
 import { HuddleLogo } from "@/src/components/huddle-logo"
 import { supabase } from "@/lib/supabaseClient"
+import { useUser } from "@/lib/useUser"
 
 export function LoginCard() {
+  
+  const { user, loading } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push("/dashboard")
+    }
+  }, [loading, user, router])
+  
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
-
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,7 +42,7 @@ export function LoginCard() {
     // Redirect to dashboard after successful login
     router.push("/dashboard")
   }
-
+  
   async function handleGoogleLogin() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
