@@ -4,15 +4,33 @@ import type React from "react"
 import { useState } from "react"
 import { Button } from "@/src/components/ui/button"
 import { HuddleLogo } from "@/src/components/huddle-logo"
+import { supabase } from "@/lib/supabaseClient"
 
 export function LoginCard() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null) 
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    // Hook up authentication here.
-    console.log("[v0] Sign in submitted:", { email })
+    setError(null)
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    window.location.href = "/swipe-demo"   // redirect wherever your main app page is. /swipe-demo is a dummy page.
+  }
+
+  async function handleGoogleLogin() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    if (error) setError(error.message)
   }
 
   return (
@@ -34,6 +52,7 @@ export function LoginCard() {
       <Button
         type="button"
         variant="outline"
+        onClick={handleGoogleLogin}
         className="h-12 w-full gap-3 rounded-2xl border-border bg-card text-base font-semibold text-foreground hover:bg-accent"
       >
         <GoogleIcon className="h-5 w-5" />
@@ -79,6 +98,8 @@ export function LoginCard() {
             className="h-12 rounded-2xl border border-input bg-muted/40 px-4 text-base text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/30"
           />
         </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <Button
           type="submit"
