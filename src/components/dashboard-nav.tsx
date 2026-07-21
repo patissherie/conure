@@ -1,5 +1,5 @@
-import Image from "next/image"
 import { HuddleLogo } from "@/src/components/huddle-logo"
+import { MemberAvatar } from "@/src/components/member-avatar"
 
 export function DashboardNav() {
   return (
@@ -11,14 +11,11 @@ export function DashboardNav() {
       <button
         type="button"
         aria-label="Open your profile"
-        className="relative h-11 w-11 overflow-hidden rounded-full ring-2 ring-card shadow-sm transition-transform hover:scale-105"
+        className="transition-transform hover:scale-105"
       >
-        <Image
-          src="/avatars/matt.png"
-          alt="Matt's avatar"
-          fill
-          sizes="44px"
-          className="object-cover"
+        <MemberAvatar
+          name="Matt"
+          className="h-11 w-11 text-sm shadow-sm ring-2 ring-card"
         />
       </button>
     </header>
