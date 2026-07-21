@@ -27,7 +27,7 @@ export default function GroupDashboardPage() {
         </div>
 
         <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-card shadow-sm ring-1 ring-border">
-            <MemberAvatar name="Jamie" index={1} className="h-11 w-11 text-sm" />
+            <MemberAvatar name="Matt" index={1} className="h-11 w-11 text-sm" />
         </div>
         </header>
 

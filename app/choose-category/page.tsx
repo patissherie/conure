@@ -31,7 +31,7 @@ export default function ChooseCategoryPage() {
           <HuddleLogo className="h-7 w-7" />
           <span className="font-serif text-xl font-bold text-foreground">Huddle</span>
         </div>
-        <MemberAvatar name="Jamie" index={2} className="h-11 w-11 text-sm" />
+        <MemberAvatar name="Matt" index={2} className="h-11 w-11 text-sm" />
       </header>
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-16">
