@@ -15,21 +15,21 @@ import { supabase } from '@/lib/supabaseClient'
 const GROUPS: Group[] = [
   {
     name: "Coffee Lovers",
-    members: 5,
-    memberNames: ["Tino", "Aditri", "Matt", "Sherleen"],
-    stage: "finding",
-    message: "3 of 5 members submitted availability.",
-  },
-  {
-    name: "Friday Fun",
-    members: 6,
+    members: 4,
     memberNames: ["Tino", "Aditri", "Matt", "Sherleen"],
     stage: "voting",
     message: "Everyone is free! Time to vote on an activity.",
   },
   {
+    name: "Friday Fun",
+    members: 5,
+    memberNames: ["Tino", "Aditri", "Matt", "Sherleen", "Random"],
+    stage: "finding",
+    message: "3 of 5 members submitted availability.",
+  },
+  {
     name: "Foodies",
-    members: 4,
+    members: 3,
     memberNames: ["Tino", "Aditri", "Sherleen"],
     stage: "confirmed",
     message: "Hangout confirmed for Friday at 7:00 PM.",
