@@ -1,17 +1,6 @@
-import Image from "next/image"
-
 export function EmptyGroups() {
   return (
-    <div className="mt-4 flex flex-col items-center rounded-3xl bg-card px-6 py-12 text-center shadow-[0_12px_30px_-18px_rgba(61,43,36,0.45)] ring-1 ring-black/[0.03]">
-      <div className="relative h-40 w-40">
-        <Image
-          src="/illustrations/celebrating.png"
-          alt="Smiling friends celebrating together"
-          fill
-          sizes="160px"
-          className="object-contain"
-        />
-      </div>
+    <div className="mt-4 flex flex-col items-center rounded-3xl bg-card px-6 py-10 text-center shadow-[0_12px_30px_-18px_rgba(61,43,36,0.45)] ring-1 ring-black/[0.03]">
       <h3 className="mt-5 font-serif text-2xl font-bold text-foreground">
         No groups yet{" "}
         <span role="img" aria-label="party popper">
