@@ -16,13 +16,13 @@ export default function TimeFoundPage() {
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-16">
         <div className="rounded-3xl bg-card p-6 shadow-[0_20px_50px_-20px_rgba(61,43,36,0.25)] sm:p-8">
-          <button
-            type="button"
+          <Link
+            href="/group-dashboard"
             className="mb-5 inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" strokeWidth={2.5} />
             Back
-          </button>
+          </Link>
 
           <div className="flex flex-col items-center text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary text-primary">
