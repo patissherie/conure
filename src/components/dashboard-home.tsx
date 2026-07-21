@@ -1,13 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Users } from "lucide-react"
+import { Plus, User, Users } from "lucide-react"
 import { DashboardNav } from "@/src/components/dashboard-nav"
 import { GroupCard, type Group } from "@/src/components/group-card"
 import { EmptyGroups } from "@/src/components/empty-groups"
 import { supabase } from "@/lib/supabaseClient"
 import { useUser } from "@/lib/useUser"
 import { JoinGroupModal } from "@/src/components/join-group-modal"
+import { useRouter } from 'next/navigation'
+import { Button } from './ui/button'
+
 
 const GROUPS: Group[] = [
   {
@@ -37,20 +40,33 @@ export function DashboardHome() {
   const { user } = useUser()
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
   useEffect(() => {
-    if (!user) return
+    if (!loading && !user) {
+      router.push('/login')
+    }
+    
+    
 
+    // const user_name = user.user_metadata
     async function loadGroups() {
     const { data, error } = await supabase
       .from('group_members')
       .select('groups(id, name, group_members(user_id, users(avatar_url)))')
-      .eq('user_id', user.id)
+      .eq('user_id', user?.id)
     
     if (error || !data) {
       setLoading(false)
       return
     }
+
+    
 
     const shaped: Group[] = data.map((row: any) => {
       const g = row.groups
@@ -68,17 +84,21 @@ export function DashboardHome() {
   }
 
     loadGroups()
-  }, [user])
+  }, [loading, user, router])
+  if (loading || !user) return <p className="p-8">Loading...</p>
+  
 
   const hasGroups = groups.length > 0
 
   return (
+      
     <main className="mx-auto w-full max-w-2xl px-5 py-8 sm:px-6 sm:py-10">
       <DashboardNav />
 
       <section className="mt-10">
+        
         <h1 className="text-pretty font-serif text-3xl font-bold text-foreground sm:text-4xl">
-          Good afternoon, Jamie{" "}
+          Good afternoon, {user?.user_metadata?.full_name.split(' ')[0]} {" "}
           <span role="img" aria-label="waving hand">
             👋
           </span>
@@ -110,6 +130,14 @@ export function DashboardHome() {
           <EmptyGroups />
         )}
       </section>
+      <Button
+        onClick={handleLogout}
+        
+        className="mt-2 h-20 w-full rounded-2xl bg-primary text-base font-bold text-primary-foreground shadow-[0_10px_24px_-8px_rgba(232,96,76,0.6)] hover:bg-primary/90"
+      >
+        
+        Log Out
+      </Button>
     </main>
   )
 }
