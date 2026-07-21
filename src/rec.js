@@ -223,7 +223,7 @@ function scoreFromAffinity(place, affinity) {
 export async function recommendPlacesForGroup(
   groupId,
   {
-    topN = 10,
+    topN = 5,
     weights = DEFAULT_WEIGHTS,
     excludeVisited = true,
     excludeWantToGo = false,
@@ -275,7 +275,7 @@ export async function recommendPlacesForGroup(
 // ---------------------------------------------------------------
 // Example: seed swipe_options for a brand-new event
 // ---------------------------------------------------------------
-export async function createSwipeOptionsForEvent(eventId, groupId, topN = 10) {
+export async function createSwipeOptionsForEvent(eventId, groupId, topN = 5) {
   const recommendations = await recommendPlacesForGroup(groupId, { topN });
   const rows = recommendations.map((rec, i) => ({
     event_id: eventId,
