@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Plus, User, Users } from "lucide-react"
+import { Plus, Heart } from "lucide-react"
 import { DashboardNav } from "@/src/components/dashboard-nav"
 import { GroupCard, type Group } from "@/src/components/group-card"
 import { EmptyGroups } from "@/src/components/empty-groups"
@@ -107,14 +107,22 @@ export function DashboardHome() {
 
       <section className="mt-6 flex flex-col gap-3">
         <a
-          href="/groups/new"
-          className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-bold text-primary-foreground shadow-[0_12px_26px_-10px_rgba(232,96,76,0.65)] transition-colors hover:bg-primary/90"
+            href="/groups/new"
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-bold text-primary-foreground shadow-[0_12px_26px_-10px_rgba(232,96,76,0.65)] transition-colors hover:bg-primary/90"
         >
-          <Plus className="h-5 w-5" />
-          Create Group
+            <Plus className="h-5 w-5" />
+            Create Group
         </a>
 
         <JoinGroupModal />
+
+        <a
+            href="/saved-places"
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card text-base font-bold text-foreground shadow-[0_8px_20px_-12px_rgba(61,43,36,0.25)] transition-colors hover:bg-accent"
+        >
+            <Heart className="h-5 w-5 fill-current text-primary" />
+            Saved Places
+        </a>
       </section>
 
       <section className="mt-10">
