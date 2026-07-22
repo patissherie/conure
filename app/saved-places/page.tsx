@@ -109,7 +109,7 @@ export default function SavedPlacesPage() {
             >
               <div className="size-20 shrink-0 overflow-hidden rounded-xl sm:size-24">
                 <Image
-                  src={place.image || "/placeholder.svg"}
+                  src={place.image || "/location-placeholder.svg"}
                   alt={`Photo of ${place.name}`}
                   width={200}
                   height={200}
