@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { HuddleLogo } from '../../src/components/huddle-logo'
-import { MemberAvatar } from '../../src/components/member-avatar'
+import { HuddleLogo } from '../../../../../../src/components/huddle-logo'
+import { MemberAvatar } from '../../../../../../src/components/member-avatar'
+import { useParams, useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
+import { useUser } from '@/lib/useUser'
 
 type Category = 'food' | 'activity' | 'surprise'
 
@@ -16,16 +18,25 @@ const OPTIONS: { id: Category; emoji: string; title: string; description: string
 ]
 
 export default function ChooseCategoryPage() {
-  const searchParams = useSearchParams()
-  const groupId = searchParams.get("groupId")
+  const { user } = useUser();
+  const params = useParams();
+  const groupId = params.groupId as string;
+  const eventId = params.eventId as string;
   const router = useRouter()
   const [selected, setSelected] = useState<Category | null>(null)
 
-  function handleContinue() {
+  async function handleContinue() {
     if (!selected) return
+      await supabase
+    .from("events")
+    .update({
+      status: "recommendations",
+    })
+    .eq("id", eventId);
+
     router.push(
-        `/recommendations?category=${selected}&groupId=${groupId}`
-    )
+    `/group-dashboard/${groupId}/events/${eventId}/recommendations?category=${selected}`
+);
   }
 
   return (
@@ -35,13 +46,17 @@ export default function ChooseCategoryPage() {
           <HuddleLogo className="h-7 w-7" />
           <span className="font-serif text-xl font-bold text-foreground">Huddle</span>
         </div>
-        <MemberAvatar name="Matt" index={2} className="h-11 w-11 text-sm" />
+        <MemberAvatar
+            name={user?.user_metadata?.full_name ?? "User"}
+            index={2}
+            className="h-11 w-11 text-sm"
+        />
       </header>
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-16">
         <div className="rounded-3xl bg-card p-6 shadow-[0_20px_50px_-20px_rgba(61,43,36,0.25)] sm:p-8">
         <Link
-            href={`/suggested-time?groupId=${groupId}`}
+            href={`/group-dashboard/${groupId}/events/${eventId}/suggested-time`}
             className="mb-5 inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
         >
             <ArrowLeft className="h-4 w-4" strokeWidth={2.5} />

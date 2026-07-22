@@ -137,7 +137,7 @@ function TimeFoundContent() {
                 .eq("id", eventId);
 
                 router.push(
-                `/group-dashboard/${groupId}/events/${eventId}/choose-activity`
+                `/group-dashboard/${groupId}/events/${eventId}/choose-category`
                 );
             }}
             >

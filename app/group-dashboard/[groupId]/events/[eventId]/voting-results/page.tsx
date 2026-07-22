@@ -3,9 +3,9 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, PartyPopper, Calendar, Clock, MapPin, Heart } from "lucide-react"
-import { Button } from "../../src/components/ui/button"
-import { HuddleLogo } from "../../src/components/huddle-logo"
-import { MemberAvatar } from "../../src/components/member-avatar"
+import { Button } from "../../../../../../src/components/ui/button"
+import { HuddleLogo } from "../../../../../../src/components/huddle-logo"
+import { MemberAvatar } from "../../../../../../src/components/member-avatar"
 import { useUser } from "@/lib/useUser"
 
 // Hardcoded demo data — replace with real backend data later.

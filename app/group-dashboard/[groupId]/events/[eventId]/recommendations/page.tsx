@@ -3,10 +3,10 @@
 import { Suspense, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, MapPin, DollarSign, Car, Heart, ThumbsDown, Star } from 'lucide-react'
-import { HuddleLogo } from '../../src/components/huddle-logo'
-import { MemberAvatar } from '../../src/components/member-avatar'
+import { HuddleLogo } from '../../../../../../src/components/huddle-logo'
+import { MemberAvatar } from '../../../../../../src/components/member-avatar'
 import { useUser } from "@/lib/useUser"
 
 type Recommendation = {
@@ -152,8 +152,11 @@ function StarRating({ rating }: { rating: number }) {
 function RecommendationsContent() {
   const { user } = useUser()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const category = searchParams.get('category')
+  const params = useParams();
+
+  const groupId = params.groupId as string;
+  const eventId = params.eventId as string;
+  const category = params.category as string;
 
   const recommendations = useMemo(() => getRecommendations(category), [category])
   const [index, setIndex] = useState(0)
@@ -166,7 +169,9 @@ function RecommendationsContent() {
     setLeaving(vote)
     window.setTimeout(() => {
       if (index + 1 >= recommendations.length) {
-        router.push('/voting-results')
+        router.push(
+          `/group-dashboard/${groupId}/events/${eventId}/voting-results`
+        )
       } else {
         setIndex((i) => i + 1)
         setLeaving(null)
@@ -195,9 +200,11 @@ function RecommendationsContent() {
             type="button"
             onClick={() => {
                 if (index > 0) {
-                setIndex((i) => i - 1)
+                  setIndex((i) => i - 1)
                 } else {
-                router.push("/choose-category")
+                  router.push(
+                    `/group-dashboard/${groupId}/events/${eventId}/choose-category`
+                  )
                 }
             }}
             className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
