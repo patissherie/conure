@@ -10,10 +10,11 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
 type SavedPlace = {
+  id: string
   placeId: string
   name: string
   category: string | null
-  location: string | null
+  location: string |null
   image: string | null
   addedByName: string | null
 }
@@ -46,17 +47,37 @@ export default function SavedPlacesPage() {
 
     if (!error && data) {
       const shaped: SavedPlace[] = data.map((row: any) => ({
+        id: row.id,
         placeId: row.place_id,
-        name: row.places?.name ?? 'Unknown place',
-        category: row.places?.category ?? '',
-        location: row.places?.address ?? '',
+        name: row.places?.name ?? "Unknown place",
+        category: row.places?.category ?? "",
+        location: row.places?.address ?? "",
         image: row.places?.photo_url ?? null,
         addedByName: row.users?.name ?? null,
       }))
+
       setPlaces(shaped)
     }
     setLoading(false)
   }
+
+    async function removePlace(id: string) {
+        const { error } = await supabase
+            .from("saved_want_to_go")
+            .delete()
+            .eq("id", id)
+
+        if (error) {
+            console.log("code:", error.code)
+            console.log("message:", error.message)
+            console.log("details:", error.details)
+            console.log("hint:", error.hint)
+            alert(error.message)
+            return
+        }
+
+        setPlaces((prev) => prev.filter((place) => place.id !== id))
+    }
 
   useEffect(() => {
     loadPlaces()
@@ -104,7 +125,7 @@ export default function SavedPlacesPage() {
         <ul className="mt-8 flex flex-col gap-4">
           {places.map((place) => (
             <li
-              key={place.placeId}
+              key={place.id}
               className="flex items-center gap-4 rounded-2xl bg-card p-3 shadow-[0_16px_48px_-28px_rgba(58,42,34,0.35)] sm:p-4"
             >
               <div className="size-20 shrink-0 overflow-hidden rounded-xl sm:size-24">
@@ -131,14 +152,15 @@ export default function SavedPlacesPage() {
                 </div>
               </div>
 
-              <Button
+            <Button
                 variant="ghost"
                 size="icon"
+                onClick={() => removePlace(place.id)}
                 className="size-9 shrink-0 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
                 aria-label={`Remove ${place.name}`}
-              >
+            >
                 <X className="size-5" />
-              </Button>
+            </Button>
             </li>
           ))}
         </ul>
