@@ -3,19 +3,20 @@
 import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { User, Mail, Lock, Eye, EyeOff } from "lucide-react"
+import { User, Mail, Lock, Eye, EyeOff, MapPin } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { HuddleLogo } from "@/src/components/huddle-logo"
 import { supabase } from "@/lib/supabaseClient"
 
 export function SignupCard() {
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+    const [fullName, setFullName] = useState("")
+    const [email, setEmail] = useState("")
+    const [suburb, setSuburb] = useState("Kensington")
+    const [password, setPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirm, setShowConfirm] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -30,7 +31,10 @@ export function SignupCard() {
       email,
       password,
       options: {
-        data: { full_name: fullName },   // this becomes raw_user_meta_data -> used by your trigger
+        data: {
+            full_name: fullName,
+            suburb,
+        },
       },
     })
 
@@ -118,6 +122,32 @@ export function SignupCard() {
             placeholder="you@example.com"
             className={inputClass}
           />
+        </Field>
+
+        <Field
+            id="suburb"
+            label="Your Suburb"
+            icon={<MapPin className="h-5 w-5" />}
+        >
+        <select
+            id="suburb"
+            value={suburb}
+            onChange={(e) => setSuburb(e.target.value)}
+            className={inputClass}
+        >
+            <option>Kensington</option>
+            <option>Kingsford</option>
+            <option>Randwick</option>
+            <option>Coogee</option>
+            <option>Maroubra</option>
+            <option>Zetland</option>
+            <option>Redfern</option>
+            <option>Surry Hills</option>
+            <option>Haymarket</option>
+            <option>Sydney CBD</option>
+            <option>Newtown</option>
+            <option>Bondi Junction</option>
+        </select>
         </Field>
 
         <Field
