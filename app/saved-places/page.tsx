@@ -8,15 +8,16 @@ import { HuddleLogo } from "../../src/components/huddle-logo"
 import { MemberAvatar } from "../../src/components/member-avatar"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import { useUser } from '@/lib/useUser'
 
 type SavedPlace = {
-  id: string
+  savedId: string
   placeId: string
   name: string
   category: string | null
   location: string |null
   image: string | null
-  addedByName: string | null
+  addedById: string | null
 }
 
 function Rating({ value, name }: { value: number; name: string }) {
@@ -38,22 +39,23 @@ function Rating({ value, name }: { value: number; name: string }) {
 export default function SavedPlacesPage() {
   const [places, setPlaces] = useState<SavedPlace[]>([])
   const [loading, setLoading] = useState(true)
-
+  const { user } = useUser()
   async function loadPlaces() {
     const { data, error } = await supabase
       .from('saved_want_to_go')
-      .select('id, place_id, places(name, category, address, photo_url), users:added_by(name)')
+      .select('id, place_id, added_by, places(name, category, address, photo_url)')
+      .eq('added_by', user?.id)
       .order('added_at', { ascending: false })
 
     if (!error && data) {
       const shaped: SavedPlace[] = data.map((row: any) => ({
-        id: row.id,
+        savedId: row.id,
         placeId: row.place_id,
         name: row.places?.name ?? "Unknown place",
         category: row.places?.category ?? "",
         location: row.places?.address ?? "",
         image: row.places?.photo_url ?? null,
-        addedByName: row.users?.name ?? null,
+        addedById: row.added_by
       }))
 
       setPlaces(shaped)
@@ -61,27 +63,36 @@ export default function SavedPlacesPage() {
     setLoading(false)
   }
 
-    async function removePlace(id: string) {
-        const { error } = await supabase
-            .from("saved_want_to_go")
-            .delete()
-            .eq("id", id)
+  async function removePlace(id: string) {
+      const { error } = await supabase
+          .from("saved_want_to_go")
+          .delete()
+          .eq("id", id)
 
-        if (error) {
-            console.log("code:", error.code)
-            console.log("message:", error.message)
-            console.log("details:", error.details)
-            console.log("hint:", error.hint)
-            alert(error.message)
-            return
-        }
+      if (error) {
+          console.log("code:", error.code)
+          console.log("message:", error.message)
+          console.log("details:", error.details)
+          console.log("hint:", error.hint)
+          alert(error.message)
+          return
+      }
 
-        setPlaces((prev) => prev.filter((place) => place.id !== id))
-    }
+      setPlaces((prev) => prev.filter((place) => place.addedById === id))
+  }
 
   useEffect(() => {
-    loadPlaces()
-  }, [])
+    if (user) loadPlaces()
+  }, [user])
+
+  async function handleRemove(savedId: string) {
+    const { error } = await supabase.from('saved_want_to_go').delete().eq('id', savedId)
+    if (!error) {
+      setPlaces((prev) => prev.filter((p) => p.addedById === user?.id))
+    }
+  }
+
+  if (loading) return <p className="p-8">Loading...</p>
 
   if (loading) return <p className="p-8">Loading...</p>
   return (
@@ -125,7 +136,7 @@ export default function SavedPlacesPage() {
         <ul className="mt-8 flex flex-col gap-4">
           {places.map((place) => (
             <li
-              key={place.id}
+              key={place.placeId}
               className="flex items-center gap-4 rounded-2xl bg-card p-3 shadow-[0_16px_48px_-28px_rgba(58,42,34,0.35)] sm:p-4"
             >
               <div className="size-20 shrink-0 overflow-hidden rounded-xl sm:size-24">
@@ -155,10 +166,11 @@ export default function SavedPlacesPage() {
             <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => removePlace(place.id)}
+                // onClick={() => removePlace(place.placeId)}
                 className="size-9 shrink-0 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
                 aria-label={`Remove ${place.name}`}
-            >
+                onClick={() => handleRemove(place.savedId)}
+              >
                 <X className="size-5" />
             </Button>
             </li>

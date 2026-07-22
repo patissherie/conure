@@ -73,7 +73,6 @@ export default function AddPlacePage() {
     const { error: saveError } = await supabase.from("saved_want_to_go").insert({
       place_id: place.id,
       added_by: user.id,
-      group_id: null, // wishlist is global now, not group-scoped
     })
 
     if (saveError) {
