@@ -45,24 +45,31 @@ export async function getEventRsvps(eventId: string): Promise<Rsvp[]> {
   return data ?? [];
 }
 
-export async function submitRsvp(
-  eventId: string,
-  userId: string,
-  status: Rsvp['status'],
-  availableTimes: string[]
-) {
+export async function submitRsvp(eventId: string, userId: string, status: Rsvp['status'], availableTimes: string[]) {
   const { data, error } = await supabase
     .from('rsvps')
-    .upsert({
-      event_id: eventId,
-      user_id: userId,
-      status,
-      available_times: availableTimes,
-    })
+    .upsert({ event_id: eventId, user_id: userId, status, available_times: availableTimes })
     .select()
-    .single();
-  if (error) throw error;
-  return data;
+    .single()
+  if (error) throw error
+
+  // Check if everyone in the group has now responded
+  const { data: event } = await supabase.from('events').select('group_id').eq('id', eventId).single()
+  const { count: memberCount } = await supabase
+    .from('group_members')
+    .select('*', { count: 'exact', head: true })
+    .eq('group_id', event?.group_id)
+  const { count: rsvpCount } = await supabase
+    .from('rsvps')
+    .select('*', { count: 'exact', head: true })
+    .eq('event_id', eventId)
+    .neq('status', 'pending')
+
+  if (rsvpCount === memberCount) {
+    await supabase.from('events').update({ status: 'time_locked' }).eq('id', eventId)
+  }
+
+  return data
 }
 
 // ---------------------------------------------------------
@@ -78,18 +85,23 @@ export async function getSwipeOptions(eventId: string): Promise<SwipeOption[]> {
   return data ?? [];
 }
 
-export async function castSwipe(
-  optionId: string,
-  userId: string,
-  vote: boolean
-) {
+export async function castSwipe(optionId: string, userId: string, vote: boolean, eventId: string, requiredVoterIds: string[]) {
   const { data, error } = await supabase
     .from('swipes')
     .upsert({ option_id: optionId, user_id: userId, vote })
     .select()
-    .single();
-  if (error) throw error;
-  return data;
+    .single()
+  if (error) throw error
+
+  const matched = await getMatchedOptions(eventId, requiredVoterIds)
+  if (matched.length > 0) {
+    await supabase
+      .from('events')
+      .update({ status: 'place_locked', confirmed_place_id: matched[0].place_id })
+      .eq('id', eventId)
+  }
+
+  return data
 }
 
 // Returns options where every RSVP'd "yes" member also swiped yes

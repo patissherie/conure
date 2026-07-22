@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { MemberAvatar } from "@/src/components/member-avatar"
 
-type Stage = "finding" | "waiting" | "voting" | "confirmed"
+type Stage = "finding" | "voting" | "confirmed"
 
 const STAGE_STYLES: Record<
   Stage,
@@ -12,11 +12,6 @@ const STAGE_STYLES: Record<
     label: "Finding availability",
     dot: "bg-[#5F9E6B]",
     badge: "bg-[#E9F1E4] text-[#3F6B48]",
-  },
-  waiting: {
-    label: "Waiting for members",
-    dot: "bg-honey",
-    badge: "bg-[#FBEFD6] text-[#8A6113]",
   },
   voting: {
     label: "Voting on activities",

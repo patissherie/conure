@@ -1,45 +1,22 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Star, MapPin, X, Plus } from "lucide-react"
 import { Button } from "../../src/components/ui/button"
 import { HuddleLogo } from "../../src/components/huddle-logo"
 import { MemberAvatar } from "../../src/components/member-avatar"
+import { useEffect, useState } from "react"
+import { supabase } from "@/lib/supabaseClient"
 
-// Hardcoded demo data — frontend only.
-const savedPlaces = [
-  {
-    id: 1,
-    name: "Grill'd",
-    category: "Burgers",
-    rating: 4,
-    location: "Bondi Junction, NSW",
-    image: "/grilld-venue.png",
-  },
-  {
-    id: 2,
-    name: "Sushi Hub",
-    category: "Japanese",
-    rating: 5,
-    location: "Town Hall, Sydney",
-    image: "/sushi-hub.png",
-  },
-  {
-    id: 3,
-    name: "Pancakes on the Rocks",
-    category: "Dessert",
-    rating: 4,
-    location: "The Rocks, Sydney",
-    image: "/pancakes.png",
-  },
-  {
-    id: 4,
-    name: "Escape Room",
-    category: "Activity",
-    rating: 5,
-    location: "Darling Harbour, Sydney",
-    image: "/escape-room.png",
-  },
-]
+type SavedPlace = {
+  placeId: string
+  name: string
+  category: string | null
+  location: string | null
+  image: string | null
+  addedByName: string | null
+}
 
 function Rating({ value, name }: { value: number; name: string }) {
   return (
@@ -58,6 +35,34 @@ function Rating({ value, name }: { value: number; name: string }) {
 }
 
 export default function SavedPlacesPage() {
+  const [places, setPlaces] = useState<SavedPlace[]>([])
+  const [loading, setLoading] = useState(true)
+
+  async function loadPlaces() {
+    const { data, error } = await supabase
+      .from('saved_want_to_go')
+      .select('id, place_id, places(name, category, address, photo_url), users:added_by(name)')
+      .order('added_at', { ascending: false })
+
+    if (!error && data) {
+      const shaped: SavedPlace[] = data.map((row: any) => ({
+        placeId: row.place_id,
+        name: row.places?.name ?? 'Unknown place',
+        category: row.places?.category ?? '',
+        location: row.places?.address ?? '',
+        image: row.places?.photo_url ?? null,
+        addedByName: row.users?.name ?? null,
+      }))
+      setPlaces(shaped)
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadPlaces()
+  }, [])
+
+  if (loading) return <p className="p-8">Loading...</p>
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-xl items-center justify-between px-6 py-6">
@@ -97,9 +102,9 @@ export default function SavedPlacesPage() {
 
         {/* List of saved places */}
         <ul className="mt-8 flex flex-col gap-4">
-          {savedPlaces.map((place) => (
+          {places.map((place) => (
             <li
-              key={place.id}
+              key={place.placeId}
               className="flex items-center gap-4 rounded-2xl bg-card p-3 shadow-[0_16px_48px_-28px_rgba(58,42,34,0.35)] sm:p-4"
             >
               <div className="size-20 shrink-0 overflow-hidden rounded-xl sm:size-24">
@@ -117,9 +122,9 @@ export default function SavedPlacesPage() {
                   {place.name}
                 </h2>
                 <p className="text-sm font-medium text-primary">{place.category}</p>
-                <div className="mt-1">
-                  <Rating value={place.rating} name={place.name} />
-                </div>
+                {/* <div className="mt-1">
+                  <Rating value={place} name={place.name} />
+                </div> */}
                 <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="size-3.5 shrink-0" aria-hidden="true" />
                   <span className="truncate">{place.location}</span>
