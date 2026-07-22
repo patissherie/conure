@@ -1,3 +1,5 @@
+"use client"
+
 import { HuddleLogo } from "@/src/components/huddle-logo"
 import { MemberAvatar } from "@/src/components/member-avatar"
 import { useUser } from "@/lib/useUser"
