@@ -218,19 +218,19 @@ export default function GroupDashboardPage() {
 
           <div className="mt-4 space-y-3">
             {events.map((event) => (
-              <Link
-                key={event.id}
-                href={`/event-dashboard/${event.id}`}
-                className="block rounded-2xl border border-border bg-secondary p-4 hover:bg-accent"
-              >
-                <h3 className="font-semibold">
-                  {event.title}
-                </h3>
+            <Link
+              key={event.id}
+              href={`/group-dashboard/${groupId}/events/${event.id}`}
+              className="block rounded-2xl border border-border bg-secondary p-4 hover:bg-accent"
+            >
+              <h3 className="font-semibold">
+                {event.title}
+              </h3>
 
-                <p className="text-sm text-muted-foreground">
-                  {event.status}
-                </p>
-              </Link>
+              <p className="text-sm text-muted-foreground">
+                {event.status}
+              </p>
+            </Link>
             ))}
 
             {events.length === 0 && (
