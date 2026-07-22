@@ -10,6 +10,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 
 type SavedPlace = {
+  savedId: string
   placeId: string
   name: string
   category: string | null
@@ -46,6 +47,7 @@ export default function SavedPlacesPage() {
 
     if (!error && data) {
       const shaped: SavedPlace[] = data.map((row: any) => ({
+        savedId: row.Id,
         placeId: row.place_id,
         name: row.places?.name ?? 'Unknown place',
         category: row.places?.category ?? '',
@@ -61,6 +63,15 @@ export default function SavedPlacesPage() {
   useEffect(() => {
     loadPlaces()
   }, [])
+
+  async function handleRemove(savedId: string) {
+    const { error } = await supabase.from('saved_want_to_go').delete().eq('id', savedId)
+    if (!error) {
+      setPlaces((prev) => prev.filter((p) => p.savedId !== savedId))
+    }
+  }
+
+  if (loading) return <p className="p-8">Loading...</p>
 
   if (loading) return <p className="p-8">Loading...</p>
   return (
@@ -136,6 +147,7 @@ export default function SavedPlacesPage() {
                 size="icon"
                 className="size-9 shrink-0 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
                 aria-label={`Remove ${place.name}`}
+                onClick={() => handleRemove(place.savedId)}
               >
                 <X className="size-5" />
               </Button>
