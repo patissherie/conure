@@ -21,13 +21,18 @@ type Event = {
   id: string;
   title: string;
   description: string | null;
-  preferred_time: string | null;
+  preferred_start_time : string | null;
+  preferred_end_time: string | null;
+  confirmed_time: string | null;
   status: string;
   group_id: string;
 };
 
 type Member = {
+  id: string;
   name: string;
+  status: string;
+  selected_time: string | null;
 };
 
 export default function EventDashboardPage() {
@@ -56,20 +61,33 @@ export default function EventDashboardPage() {
       }
 
       // Load group members
-      const { data: memberData } = await supabase
-        .from('group_members')
+        const { data: memberData } = await supabase
+        .from("group_members")
         .select(`
-          users (
-            name
-          )
+            user_id,
+            users(name)
         `)
-        .eq('group_id', groupId);
+        .eq("group_id", groupId);
+
+        const { data: rsvpData } = await supabase
+        .from("rsvps")
+        .select("user_id, status, selected_time")
+        .eq("event_id", eventId);
 
       if (memberData) {
         setMembers(
-          memberData.map((m: any) => ({
-            name: m.users?.name ?? 'Unknown',
-          }))
+            memberData.map((m: any) => {
+                const rsvp = rsvpData?.find(
+                (r: any) => r.user_id === m.user_id
+                );
+
+                return {
+                id: m.user_id,
+                name: m.users?.name ?? "Unknown",
+                status: rsvp?.status ?? "pending",
+                selected_time: rsvp?.selected_time ?? null,
+                };
+            })
         );
       }
 
@@ -128,19 +146,20 @@ export default function EventDashboardPage() {
           )}
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-
             <div className="rounded-2xl bg-secondary p-4">
               <Calendar className="mb-2 h-5 w-5 text-primary" />
 
               <p className="text-sm text-muted-foreground">
-                Preferred Time
+                Event Window
               </p>
 
-              <p className="mt-1 font-semibold">
-                {event.preferred_time
-                  ? new Date(event.preferred_time).toLocaleString()
-                  : 'Not set'}
-              </p>
+            <p className="mt-1 font-semibold">
+            {event.preferred_start_time && event.preferred_end_time
+                ? `${new Date(event.preferred_start_time).toLocaleString()} → ${new Date(
+                    event.preferred_end_time
+                ).toLocaleString()}`
+                : "Not set"}
+            </p>
             </div>
 
             <div className="rounded-2xl bg-secondary p-4">
@@ -166,8 +185,19 @@ export default function EventDashboardPage() {
                 {members.length}
               </p>
             </div>
-
           </div>
+
+          {event.confirmed_time && (
+            <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-4">
+              <p className="text-sm text-green-700">
+                Confirmed Meeting Time
+              </p>
+
+              <p className="mt-1 text-lg font-bold text-green-800">
+                {new Date(event.confirmed_time).toLocaleString()}
+              </p>
+            </div>
+          )}
 
           <hr className="my-8" />
 
@@ -176,76 +206,89 @@ export default function EventDashboardPage() {
           </h2>
 
           <div className="mt-4 space-y-3">
-
             {members.map((member) => (
               <div
-                key={member.name}
+                key={member.id}
                 className="flex items-center justify-between rounded-2xl border p-4"
               >
-                <span>{member.name}</span>
+                <div>
+                  <p className="font-medium">{member.name}</p>
 
-                <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
-                  Pending
+                  {member.selected_time && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Selected:{" "}
+                      {new Date(member.selected_time).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+
+                <span
+                  className={`rounded-full px-3 py-1 text-sm font-medium ${
+                    member.status === "going"
+                      ? "bg-green-100 text-green-700"
+                      : member.status === "not_going"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {member.status === "going"
+                    ? "Going"
+                    : member.status === "not_going"
+                    ? "Not Going"
+                    : "Pending"}
                 </span>
               </div>
             ))}
-
           </div>
 
           <hr className="my-8" />
 
           <div className="grid gap-3">
+            {event.status !== "completed" && (
+              <Link
+                href={`/group-dashboard/${groupId}/events/${eventId}/availability`}
+              >
+                <Button className="w-full">
+                  RSVP & Submit Availability
+                </Button>
+              </Link>
+            )}
 
-            <Button className="w-full">
-              Submit Availability
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full"
-            >
+            <Button variant="outline" className="w-full">
               Find Best Time
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full"
-            >
+            <Button variant="outline" className="w-full">
               Choose Activity
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full"
-            >
-              View Recommendations
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full"
-            >
+            <Button variant="outline" className="w-full">
               Start Voting
             </Button>
-
           </div>
 
           <div className="mt-8 rounded-2xl bg-accent p-5">
-
             <div className="flex items-center gap-2">
-
               <CheckCircle2 className="h-5 w-5 text-primary" />
 
               <h3 className="font-semibold">
                 Final Decision
               </h3>
-
             </div>
 
-            <p className="mt-2 text-muted-foreground">
-              No venue has been selected yet.
-            </p>
-
+            {event.confirmed_time ? (
+              <p className="mt-2 text-muted-foreground">
+                Meeting confirmed for{" "}
+                <span className="font-semibold">
+                  {new Date(event.confirmed_time).toLocaleString()}
+                </span>
+                .
+              </p>
+            ) : (
+              <p className="mt-2 text-muted-foreground">
+                No venue has been selected yet.
+              </p>
+            )}
           </div>
 
         </div>

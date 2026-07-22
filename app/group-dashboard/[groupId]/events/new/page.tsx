@@ -17,7 +17,9 @@ export default function CreateEventPage() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [preferredTime, setPreferredTime] = useState('');
+
+  const [preferredStart, setPreferredStart] = useState('');
+  const [preferredEnd, setPreferredEnd] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,17 +27,24 @@ export default function CreateEventPage() {
   async function createEvent(e: React.FormEvent) {
     e.preventDefault();
 
-    setLoading(true);
     setError('');
+
+    if (new Date(preferredEnd) <= new Date(preferredStart)) {
+      setError('End date must be after the start date.');
+      return;
+    }
+
+    setLoading(true);
 
     const { data, error } = await supabase
       .from('events')
       .insert({
         group_id: groupId,
-        title,
-        description,
-        preferred_time: preferredTime,
-        status: 'planning',
+        title: title.trim(),
+        description: description.trim() || null,
+        preferred_start_time: preferredStart,
+        preferred_end_time: preferredEnd,
+        status: 'voting',
       })
       .select()
       .single();
@@ -44,11 +53,6 @@ export default function CreateEventPage() {
 
     if (error) {
       setError(error.message);
-      return;
-    }
-
-    if (!data) {
-      setError('Event was created but could not be opened.');
       return;
     }
 
@@ -69,7 +73,7 @@ export default function CreateEventPage() {
 
           <Link
             href={`/group-dashboard/${groupId}`}
-            className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition hover:text-foreground"
+            className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
@@ -84,7 +88,7 @@ export default function CreateEventPage() {
               </h2>
 
               <p className="text-muted-foreground">
-                Plan your next hangout with your group.
+                Create an event and choose a date range your group can meet in.
               </p>
             </div>
           </div>
@@ -93,7 +97,8 @@ export default function CreateEventPage() {
             onSubmit={createEvent}
             className="space-y-6"
           >
-            {/* Event Title */}
+            {/* Title */}
+
             <div>
               <label className="mb-2 block font-semibold">
                 Event Title
@@ -109,9 +114,11 @@ export default function CreateEventPage() {
             </div>
 
             {/* Description */}
+
             <div>
               <label className="mb-2 block font-semibold">
                 Description
+
                 <span className="ml-1 text-sm font-normal text-muted-foreground">
                   (optional)
                 </span>
@@ -126,25 +133,51 @@ export default function CreateEventPage() {
               />
             </div>
 
-            {/* Preferred Date */}
-            <div>
-              <label className="mb-2 block font-semibold">
-                Preferred Date & Time
-              </label>
+            {/* Event Window */}
 
-              <p className="mb-3 text-sm text-muted-foreground">
-                Choose your ideal date and time. Huddle will try to find the
-                closest time that works for everyone.
-              </p>
+            <div className="space-y-5">
 
-              <input
-                type="datetime-local"
-                required
-                value={preferredTime}
-                onChange={(e) => setPreferredTime(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
-                className="w-full rounded-xl border border-input px-4 py-3"
-              />
+              <div>
+                <label className="mb-2 block font-semibold">
+                  Event Window
+                </label>
+
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Members who RSVP "Going" will submit their availability within
+                  this date range.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Start
+                </label>
+
+                <input
+                  type="datetime-local"
+                  required
+                  value={preferredStart}
+                  onChange={(e) => setPreferredStart(e.target.value)}
+                  min={new Date().toISOString().slice(0, 16)}
+                  className="w-full rounded-xl border border-input px-4 py-3"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  End
+                </label>
+
+                <input
+                  type="datetime-local"
+                  required
+                  value={preferredEnd}
+                  onChange={(e) => setPreferredEnd(e.target.value)}
+                  min={preferredStart || new Date().toISOString().slice(0, 16)}
+                  className="w-full rounded-xl border border-input px-4 py-3"
+                />
+              </div>
+
             </div>
 
             {error && (
@@ -160,7 +193,9 @@ export default function CreateEventPage() {
             >
               {loading ? 'Creating Event...' : 'Create Event'}
             </Button>
+
           </form>
+
         </div>
       </main>
     </div>
