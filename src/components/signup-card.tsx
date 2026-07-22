@@ -18,6 +18,49 @@ export function SignupCard() {
     const [showConfirm, setShowConfirm] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    const CUISINES = [
+    "italian",
+    "japanese",
+    "thai",
+    "indian",
+    "mexican",
+    "bbq",
+    "vegan",
+    "cafe",
+    "dessert",
+    ];
+
+    const [cuisineTags, setCuisineTags] = useState<string[]>([]);
+
+    const ACTIVITIES = [
+    "games",
+    "chill",
+    "outdoors",
+    "art",
+    "live music",
+    "sports",
+    "movies",
+    "shopping",
+    ];
+
+    const [activityTags, setActivityTags] = useState<string[]>([]);
+
+    function toggleCuisine(tag: string) {
+    setCuisineTags((prev) =>
+        prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
+        : [...prev, tag]
+    );
+    }
+
+    function toggleActivity(tag: string) {
+    setActivityTags((prev) =>
+        prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
+        : [...prev, tag]
+    );
+    }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -34,8 +77,10 @@ export function SignupCard() {
         data: {
             full_name: fullName,
             suburb,
-        },
-      },
+            cuisine_tags: cuisineTags,
+            activity_tags: activityTags,
+        }
+      }
     })
 
     if (error) {
@@ -194,6 +239,52 @@ export function SignupCard() {
           />
         </Field>
 
+        <div>
+        <label className="mb-2 block font-semibold">
+            Cuisine Preferences
+        </label>
+
+        <div className="flex flex-wrap gap-2">
+            {CUISINES.map((tag) => (
+            <button
+                key={tag}
+                type="button"
+                onClick={() => toggleCuisine(tag)}
+                className={`rounded-full border px-4 py-2 text-sm transition ${
+                cuisineTags.includes(tag)
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background border-input hover:bg-accent"
+                }`}
+            >
+                {tag}
+            </button>
+            ))}
+        </div>
+        </div>
+
+        <div>
+        <label className="mb-2 mt-4 block font-semibold">
+            Activity Preferences
+        </label>
+
+        <div className="flex flex-wrap gap-2">
+            {ACTIVITIES.map((tag) => (
+            <button
+                key={tag}
+                type="button"
+                onClick={() => toggleActivity(tag)}
+                className={`rounded-full border px-4 py-2 text-sm transition ${
+                activityTags.includes(tag)
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background border-input hover:bg-accent"
+                }`}
+            >
+                {tag}
+            </button>
+            ))}
+        </div>
+        </div>
+        
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button
           type="submit"

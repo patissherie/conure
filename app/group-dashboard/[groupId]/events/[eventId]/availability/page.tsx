@@ -174,10 +174,6 @@ export default function AvailabilityPage() {
                     label: 'Going',
                   },
                   {
-                    value: 'maybe',
-                    label: 'Maybe',
-                  },
-                  {
                     value: 'not_going',
                     label: 'Not Going',
                   },

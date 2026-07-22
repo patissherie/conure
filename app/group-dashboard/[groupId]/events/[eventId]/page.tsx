@@ -248,22 +248,17 @@ export default function EventDashboardPage() {
               <Link
                 href={`/group-dashboard/${groupId}/events/${eventId}/availability`}
               >
-                <Button className="w-full">
-                  RSVP & Submit Availability
+                <Button className="h-14 w-full text-base font-semibold rounded-xl">
+                    RSVP & Submit Availability
                 </Button>
               </Link>
             )}
 
-            <Button variant="outline" className="w-full">
-              Find Best Time
-            </Button>
-
-            <Button variant="outline" className="w-full">
-              Choose Activity
-            </Button>
-
-            <Button variant="outline" className="w-full">
-              Start Voting
+            <Button
+                variant="outline"
+                className="h-14 w-full text-base font-semibold rounded-xl"
+            >
+                Find Best Time
             </Button>
           </div>
 
