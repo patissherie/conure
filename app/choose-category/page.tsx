@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { HuddleLogo } from '../../src/components/huddle-logo'
 import { MemberAvatar } from '../../src/components/member-avatar'
@@ -16,12 +16,16 @@ const OPTIONS: { id: Category; emoji: string; title: string; description: string
 ]
 
 export default function ChooseCategoryPage() {
+  const searchParams = useSearchParams()
+  const groupId = searchParams.get("groupId")
   const router = useRouter()
   const [selected, setSelected] = useState<Category | null>(null)
 
   function handleContinue() {
     if (!selected) return
-    router.push(`/recommendations?category=${selected}`)
+    router.push(
+        `/recommendations?category=${selected}&groupId=${groupId}`
+    )
   }
 
   return (
@@ -36,13 +40,13 @@ export default function ChooseCategoryPage() {
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-16">
         <div className="rounded-3xl bg-card p-6 shadow-[0_20px_50px_-20px_rgba(61,43,36,0.25)] sm:p-8">
-          <Link
-            href="/suggested-time"
+        <Link
+            href={`/suggested-time?groupId=${groupId}`}
             className="mb-5 inline-flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
-          >
+        >
             <ArrowLeft className="h-4 w-4" strokeWidth={2.5} />
             Back
-          </Link>
+        </Link>
 
           <div className="text-center">
             <h1 className="font-serif text-3xl font-bold tracking-tight text-balance">
