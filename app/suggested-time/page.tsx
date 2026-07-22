@@ -1,13 +1,14 @@
 'use client'
 
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, PartyPopper } from 'lucide-react'
 import { HuddleLogo } from '../../src/components/huddle-logo'
 import { MemberAvatar } from '../../src/components/member-avatar'
-import { useUser } from "@/lib/useUser"
+import { useUser } from '@/lib/useUser'
 
-export default function TimeFoundPage() {
+function TimeFoundContent() {
   const searchParams = useSearchParams()
   const groupId = searchParams.get('groupId')
   const { user } = useUser()
@@ -23,9 +24,9 @@ export default function TimeFoundPage() {
         </div>
 
         <MemberAvatar
-            name={user?.user_metadata?.full_name ?? "User"}
-            index={2}
-            className="h-11 w-11 text-sm"
+          name={user?.user_metadata?.full_name ?? 'User'}
+          index={2}
+          className="h-11 w-11 text-sm"
         />
       </header>
 
@@ -77,5 +78,13 @@ export default function TimeFoundPage() {
         </div>
       </main>
     </div>
+  )
+}
+
+export default function TimeFoundPage() {
+  return (
+    <Suspense fallback={<div className="min-h-dvh bg-background" />}>
+      <TimeFoundContent />
+    </Suspense>
   )
 }
