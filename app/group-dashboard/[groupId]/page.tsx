@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { ArrowLeft, Sparkles } from 'lucide-react'
+import {
+  ArrowLeft,
+  Sparkles,
+  Copy,
+  Check,
+  UserPlus,
+} from 'lucide-react'
 import { HuddleLogo } from '../../../src/components/huddle-logo'
 import { MemberList, type Member } from '../../../src/components/member-list'
 import { SyncProgress } from '../../../src/components/sync-progress'
@@ -15,6 +21,8 @@ export default function GroupDashboardPage() {
   const groupId = params.groupId as string
 
   const [groupName, setGroupName] = useState('')
+  const [inviteCode] = useState("X7K9Q2")
+const [copied, setCopied] = useState(false)
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -47,6 +55,15 @@ export default function GroupDashboardPage() {
   const connectedCount = members.filter((m) => m.connected).length
   const everyoneConnected = connectedCount === members.length
 
+  async function copyInviteCode() {
+    await navigator.clipboard.writeText(inviteCode)
+    setCopied(true)
+
+    setTimeout(() => {
+      setCopied(false)
+    }, 1500)
+  }
+
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="mx-auto flex max-w-2xl items-center justify-between px-5 py-6">
@@ -77,6 +94,54 @@ export default function GroupDashboardPage() {
               {groupName}
             </h1>
             <p className="mt-1 text-muted-foreground">Plan your next hangout together.</p>
+
+            <div className="mt-6 rounded-2xl border border-border bg-secondary/60 p-5">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-primary" />
+                  <h2 className="font-serif text-lg font-bold">
+                    Invite Friends
+                  </h2>
+                </div>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Share this code so others can join the group.
+                </p>
+              </div>
+
+              <button
+                onClick={copyInviteCode}
+                className="rounded-xl border border-border px-3 py-2 text-sm font-semibold transition hover:bg-card"
+              >
+                <span className="flex items-center gap-2">
+                  {copied ? (
+                    <>
+                      <Check className="h-4 w-4 text-green-600" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copy
+                    </>
+                  )}
+                </span>
+              </button>
+            </div>
+
+            <div className="mt-5 rounded-xl border-2 border-dashed border-primary bg-card py-5 text-center">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                Group Code
+              </p>
+
+              <p className="mt-2 font-mono text-3xl font-bold tracking-[0.25em] text-primary">
+                {inviteCode}
+              </p>
+            </div>
+          </div>
+
+          <div className="my-6 h-px bg-border" />
           </header>
 
           <div className="my-6 h-px bg-border" />
