@@ -25,21 +25,18 @@ function TimeFoundContent() {
 
   useEffect(() => {
   async function loadBestTime() {
-    const { data } = await supabase
-      .from("rsvps")
-      .select("selected_time")
-      .eq("event_id", eventId)
-      .eq("status", "going");
+    const { data, error } = await supabase
+      .from("availability_slots")
+      .select("slot_time")
+      .eq("event_id", eventId);
 
-    if (!data) return;
+    if (error || !data) return;
 
     const counts: Record<string, number> = {};
 
-    data.forEach((r: any) => {
-      if (!r.selected_time) return;
-
-      counts[r.selected_time] =
-        (counts[r.selected_time] || 0) + 1;
+    data.forEach((slot) => {
+      counts[slot.slot_time] =
+        (counts[slot.slot_time] || 0) + 1;
     });
 
     let best: string | null = null;

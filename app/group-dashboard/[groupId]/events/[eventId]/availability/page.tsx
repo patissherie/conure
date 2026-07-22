@@ -10,6 +10,13 @@ import { useUser } from '@/lib/useUser';
 import { HuddleLogo } from '@/src/components/huddle-logo';
 import { Button } from '@/src/components/ui/button';
 
+
+type Slot = {
+id: string;
+date: string;
+time: string;
+};
+
 type Event = {
   id: string;
   title: string;
@@ -22,13 +29,15 @@ export default function AvailabilityPage() {
   const router = useRouter();
   const { user } = useUser();
 
+  const [dragging, setDragging] = useState(false);
+  const [dragMode, setDragMode] = useState<"add" | "remove">("add");
   const groupId = params.groupId as string;
   const eventId = params.eventId as string;
 
   const [event, setEvent] = useState<Event | null>(null);
 
   const [status, setStatus] = useState('going');
-  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedSlots, setSelectedSlots] = useState<string[]>([])
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,11 +63,24 @@ export default function AvailabilityPage() {
     loadEvent();
   }, [eventId]);
 
+  useEffect(() => {
+    const stopDragging = () => setDragging(false);
+
+    window.addEventListener("mouseup", stopDragging);
+
+    return () =>
+        window.removeEventListener("mouseup", stopDragging);
+    }, []);
+
   async function saveRSVP(e: React.FormEvent) {
     e.preventDefault();
 
     if (!user) return;
 
+    if (status === "going" && selectedSlots.length === 0) {
+        setError("Please select at least one available time.");
+        return;
+    }
     setSaving(true);
     setError('');
 
@@ -66,15 +88,41 @@ export default function AvailabilityPage() {
       event_id: eventId,
       user_id: user.id,
       status,
-      selected_time:
-        status === 'going'
-          ? selectedTime
-          : null,
     };
 
     const { error } = await supabase
       .from('rsvps')
       .upsert(payload);
+
+    const { error: deleteError } = await supabase
+        .from("availability_slots")
+        .delete()
+        .eq("event_id", eventId)
+        .eq("user_id", user.id);
+
+        if (deleteError) {
+        setSaving(false);
+        setError(deleteError.message);
+        return;
+        }
+
+    if (status === "going") {
+    const { error: slotError } = await supabase
+        .from("availability_slots")
+        .insert(
+        selectedSlots.map((slot) => ({
+            event_id: eventId,
+            user_id: user.id,
+            slot_time: slot,
+        }))
+        );
+
+    if (slotError) {
+        setSaving(false);
+        setError(slotError.message);
+        return;
+    }
+    }
 
     setSaving(false);
 
@@ -91,6 +139,79 @@ export default function AvailabilityPage() {
   if (loading || !event) {
     return <p className="p-8">Loading...</p>;
   }
+
+  function generateSlots(start: Date, end: Date) {
+  const slots: Slot[] = [];
+
+  // Walk day-by-day across the whole date range, and on each day lay
+  // down the full 06:00-23:30 grid. The exact time-of-day on
+  // preferred_start_time/preferred_end_time only determines which
+  // calendar days are included, not which hours are selectable -
+  // every visible cell should have a real, clickable slot behind it.
+  const startDate = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
+  const endDate = new Date(
+    end.getFullYear(),
+    end.getMonth(),
+    end.getDate()
+  );
+
+  const current = new Date(startDate);
+
+  while (current <= endDate) {
+    for (let hour = 6; hour <= 23; hour++) {
+      for (const minute of [0, 30]) {
+        const slotDate = new Date(current);
+        slotDate.setHours(hour, minute, 0, 0);
+
+        const year = slotDate.getFullYear();
+        const month = (slotDate.getMonth() + 1).toString().padStart(2, "0");
+        const day = slotDate.getDate().toString().padStart(2, "0");
+
+        slots.push({
+          id: slotDate.toISOString(),
+          date: `${year}-${month}-${day}`,
+          time: `${hour.toString().padStart(2, "0")}:${minute
+            .toString()
+            .padStart(2, "0")}`,
+        });
+      }
+    }
+
+    current.setDate(current.getDate() + 1);
+  }
+
+  return slots;
+}
+
+function getSlot(date: string, time: string) {
+  return slots.find(
+    slot =>
+        slot.date === date &&
+        slot.time === time
+  );
+}
+
+const slots = generateSlots(
+  new Date(event.preferred_start_time),
+  new Date(event.preferred_end_time)
+);
+
+const dates = [...new Set(slots.map(slot => slot.date))];
+
+const times: string[] = [];
+
+for (let hour = 6; hour <= 23; hour++) {
+  times.push(
+    `${hour.toString().padStart(2, "0")}:00`
+  );
+  times.push(
+    `${hour.toString().padStart(2, "0")}:30`
+  );
+}
 
   return (
     <div className="min-h-dvh bg-background">
@@ -162,82 +283,148 @@ export default function AvailabilityPage() {
 
             <div>
 
-              <label className="mb-3 block font-semibold">
-                Will you attend?
-              </label>
+            <label className="mb-3 block font-semibold">
+            Will you attend?
+            </label>
 
-              <div className="space-y-3">
-
-                {[
-                  {
-                    value: 'going',
-                    label: 'Going',
-                  },
-                  {
-                    value: 'not_going',
-                    label: 'Not Going',
-                  },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex cursor-pointer items-center gap-3 rounded-xl border p-4"
-                  >
-                    <input
-                      type="radio"
-                      checked={
-                        status === option.value
-                      }
-                      onChange={() =>
-                        setStatus(option.value)
-                      }
-                    />
-
-                    <span>
-                      {option.label}
-                    </span>
-
-                  </label>
-                ))}
-
-              </div>
-
+            <div className="space-y-3">
+            {[
+                { value: "going", label: "Going" },
+                { value: "not_going", label: "Not Going" },
+            ].map((option) => (
+                <label
+                key={option.value}
+                className="flex cursor-pointer items-center gap-3 rounded-xl border p-4"
+                >
+                <input
+                    type="radio"
+                    checked={status === option.value}
+                    onChange={() => setStatus(option.value)}
+                />
+                <span>{option.label}</span>
+                </label>
+            ))}
             </div>
 
-            {status === 'going' && (
+            {status === "going" && (
+            <>
+            <label className="mt-6 mb-2 block font-semibold">
+                Select Your Available Time
+            </label>
 
-              <div>
+            <p className="mb-4 text-sm text-muted-foreground">
+                Click or drag across the grid to mark when you're available.
+            </p>
 
-                <label className="mb-2 block font-semibold">
-                  Select Your Available Time
-                </label>
+            <div
+                className="overflow-auto rounded-xl border"
+                onMouseLeave={() => setDragging(false)}
+            >
+                <table className="w-full border-collapse text-center">
+                <thead>
+                    <tr>
+                    <th className="sticky left-0 top-0 z-20 bg-card p-2"></th>
 
-                <p className="mb-3 text-sm text-muted-foreground">
-                  Choose one time within the event window.
-                </p>
+                    {dates.map((date) => (
+                        <th
+                        key={date}
+                        className="sticky top-0 z-10 bg-card p-2 text-sm font-semibold"
+                        >
+                        {new Date(date + "T00:00:00").toLocaleDateString([], {
+                            weekday: "short",
+                            day: "numeric",
+                            month: "short",
+                        })}
+                        </th>
+                    ))}
+                    </tr>
+                </thead>
 
-                <input
-                  type="datetime-local"
-                  required
-                  value={selectedTime}
-                  onChange={(e) =>
-                    setSelectedTime(
-                      e.target.value
-                    )
-                  }
-                  min={event.preferred_start_time.slice(
-                    0,
-                    16
-                  )}
-                  max={event.preferred_end_time.slice(
-                    0,
-                    16
-                  )}
-                  className="w-full rounded-xl border border-input px-4 py-3"
-                />
+                <tbody>
+                {times.map((time) => (
+                    <tr key={time}>
+                    <td className="sticky left-0 z-10 bg-card p-1 font-medium">
+                        {time}
+                    </td>
 
-              </div>
+                    {dates.map((date) => {
+                        const slot = getSlot(date, time);
 
+                        if (!slot) {
+                            return (
+                                <td key={date} className="p-1">
+                                <div className="h-8 w-8 border border-border bg-gray-100" />
+                                </td>
+                            );
+                        }
+
+                        const selected =
+                        selectedSlots.includes(slot.id);
+
+                        return (
+                        <td key={date} className="p-1">
+                            <button
+                            type="button"
+                            onMouseDown={() => {
+                                setDragging(true);
+
+                                if (selected) {
+                                    setDragMode("remove");
+
+                                    setSelectedSlots(prev =>
+                                        prev.filter(s => s !== slot.id)
+                                    );
+                                } else {
+                                    setDragMode("add");
+
+                                    setSelectedSlots(prev =>
+                                        prev.includes(slot.id)
+                                            ? prev
+                                            : [...prev, slot.id]
+                                    );
+                                }
+                            }}
+                            onMouseEnter={() => {
+                                if (!dragging) return;
+
+                                if (dragMode === "add") {
+                                    if (!selected) {
+                                        setSelectedSlots(prev =>
+                                            prev.includes(slot.id)
+                                                ? prev
+                                                : [...prev, slot.id]
+                                        );
+                                    }
+                                } else {
+                                    if (selected) {
+                                        setSelectedSlots(prev =>
+                                            prev.filter(s => s !== slot.id)
+                                        );
+                                    }
+                                }
+                            }}
+                            onMouseUp={() =>
+                                setDragging(false)
+                            }
+                            className={`h-8 w-8 border border-border transition-colors ${
+                                selected
+                                    ? "bg-green-500 border-green-500"
+                                    : "bg-card hover:bg-green-100"
+                            }`}
+                            />
+                        </td>
+                        );
+                    })}
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+            </div>
+
+            </>
             )}
+
+            </div>
 
             {error && (
               <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -247,7 +434,10 @@ export default function AvailabilityPage() {
 
             <Button
               type="submit"
-              disabled={saving}
+              disabled={
+                saving ||
+                (status === "going" && selectedSlots.length === 0)
+              }
               className="w-full"
             >
               {saving
