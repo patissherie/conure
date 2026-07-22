@@ -11,6 +11,12 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { useUser } from '@/lib/useUser';
 
+type Event = {
+  id: string;
+  title: string;
+  status: string;
+};
+
 export default function GroupDashboardPage() {
   const params = useParams();
   const groupId = params.groupId as string;
@@ -20,6 +26,8 @@ export default function GroupDashboardPage() {
   const [inviteCode, setInviteCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
+
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
 
@@ -27,33 +35,44 @@ export default function GroupDashboardPage() {
     if (!groupId) return;
 
     async function loadGroup() {
-    const { data, error } = await supabase
-      .from('groups')
-      .select(`
-        name,
-        description,
-        group_code,
-        group_members(
-          user_id,
-          users(name)
-        )
-      `)
-      .eq('id', groupId)
-      .single();
+      const { data, error } = await supabase
+        .from('groups')
+        .select(`
+          name,
+          description,
+          group_code,
+          group_members(
+            user_id,
+            users(name)
+          )
+        `)
+        .eq('id', groupId)
+        .single();
 
-      if (!error && data) {
-        setGroupName(data.name);
-        setDescription(data.description ?? '')
-        setInviteCode(data.group_code ?? '');
-        const memberList: Member[] = (data.group_members ?? []).map(
-          (m: any) => ({
-            name: m.users?.name ?? 'Unknown',
-            connected: true, // placeholder — no real "calendar connected" concept yet
-          }),
-        );
-        setMembers(memberList);
-      }
-      setLoading(false);
+        if (!error && data) {
+          setGroupName(data.name);
+          setDescription(data.description ?? '')
+          setInviteCode(data.group_code ?? '');
+          const memberList: Member[] = (data.group_members ?? []).map(
+            (m: any) => ({
+              name: m.users?.name ?? 'Unknown',
+              connected: true, // placeholder — no real "calendar connected" concept yet
+            }),
+          );
+          setMembers(memberList);
+        }
+
+        const { data: eventData, error: eventError } = await supabase
+        .from("events")
+        .select("id, title, status")
+        .eq("group_id", groupId)
+        .order("created_at", { ascending: false });
+
+        if (!eventError && eventData) {
+          setEvents(eventData);
+        }
+
+        setLoading(false);
     }
 
     loadGroup();
@@ -183,22 +202,44 @@ export default function GroupDashboardPage() {
 
           <div className='my-6 h-px bg-border' />
 
-          <SyncProgress connected={connectedCount} total={members.length} />
+          <section className="mt-8">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-xl font-bold">
+              Events
+            </h2>
 
-          <div className='mt-8 flex flex-col items-center gap-3'>
             <Link
-              href={`/suggested-time?groupId=${groupId}`}
-              className='inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-bold text-primary-foreground shadow-[0_12px_24px_-8px_rgba(232,96,76,0.6)] transition-all hover:brightness-105'
+              href={`/group-dashboard/${groupId}/events/new`}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white"
             >
-              <Sparkles className='h-5 w-5' strokeWidth={2.5} />
-              Find Our Time
+              + New Event
             </Link>
-            {!everyoneConnected && (
-              <p className='text-sm text-muted-foreground'>
-                Waiting for everyone to connect their calendars.
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {events.map((event) => (
+              <Link
+                key={event.id}
+                href={`/event-dashboard/${event.id}`}
+                className="block rounded-2xl border border-border bg-secondary p-4 hover:bg-accent"
+              >
+                <h3 className="font-semibold">
+                  {event.title}
+                </h3>
+
+                <p className="text-sm text-muted-foreground">
+                  {event.status}
+                </p>
+              </Link>
+            ))}
+
+            {events.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No events yet.
               </p>
             )}
           </div>
+        </section>
         </div>
       </main>
     </div>
