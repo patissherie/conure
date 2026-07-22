@@ -15,6 +15,9 @@ import {
 import Link from 'next/link';
 import { Button } from '@/src/components/ui/button';
 import { supabase } from '@/lib/supabaseClient';
+import { generateGroupCode } from '@/lib/groupCode';
+
+const MAX_CODE_ATTEMPTS = 5;
 
 export function CreateGroupCard() {
   const router = useRouter();
@@ -52,20 +55,37 @@ export function CreateGroupCard() {
         return;
       }
 
-      // 2. Insert the group itself.
+      // 2. Insert the group itself, generating a unique 6-character invite
+      // code. On the rare chance of a collision (unique_violation, Postgres
+      // code 23505), regenerate and retry rather than failing outright.
       // NOTE: `description` isn't in the schema you showed me earlier
       // (groups: id, name, created_by, created_at). Either run the
-      // migration below to add it, or delete the `description` line
-      // if you don't need it yet.
-      const { data: group, error: groupError } = await supabase
-        .from('groups')
-        .insert({
-          name: trimmedName,
-          description: description.trim() || null,
-          created_by: user.id,
-        })
-        .select()
-        .single();
+      // migration mentioned previously to add it, or delete the
+      // `description` line below if you don't need it yet.
+      let group: { id: string; [key: string]: unknown } | null = null;
+      let groupError: { code?: string; message?: string } | null = null;
+
+      for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
+        const { data, error } = await supabase
+          .from('groups')
+          .insert({
+            name: trimmedName,
+            description: description.trim() || null,
+            created_by: user.id,
+            group_code: generateGroupCode(),
+          })
+          .select()
+          .single();
+
+        if (!error) {
+          group = data;
+          groupError = null;
+          break;
+        }
+
+        groupError = error;
+        if (error.code !== '23505') break; // only retry on code collisions
+      }
 
       if (groupError || !group) {
         throw groupError ?? new Error('Group was not created.');
