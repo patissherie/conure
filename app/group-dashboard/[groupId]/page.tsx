@@ -16,6 +16,7 @@ export default function GroupDashboardPage() {
   const groupId = params.groupId as string;
 
   const [groupName, setGroupName] = useState('');
+  const [description, setDescription] = useState('')
   const [inviteCode, setInviteCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
@@ -26,14 +27,23 @@ export default function GroupDashboardPage() {
     if (!groupId) return;
 
     async function loadGroup() {
-      const { data, error } = await supabase
-        .from('groups')
-        .select('name, group_code, group_members(user_id, users(name))')
-        .eq('id', groupId)
-        .single();
+    const { data, error } = await supabase
+      .from('groups')
+      .select(`
+        name,
+        description,
+        group_code,
+        group_members(
+          user_id,
+          users(name)
+        )
+      `)
+      .eq('id', groupId)
+      .single();
 
       if (!error && data) {
         setGroupName(data.name);
+        setDescription(data.description ?? '')
         setInviteCode(data.group_code ?? '');
         const memberList: Member[] = (data.group_members ?? []).map(
           (m: any) => ({
@@ -97,8 +107,8 @@ export default function GroupDashboardPage() {
             <h1 className='font-serif text-3xl font-bold tracking-tight text-balance'>
               {groupName}
             </h1>
-            <p className='mt-1 text-muted-foreground'>
-              Plan your next hangout together.
+            <p className="mt-1 text-muted-foreground">
+              {description || "Plan your next hangout together."}
             </p>
 
             <div className='mt-6 rounded-2xl border border-border bg-secondary/60 p-5'>
