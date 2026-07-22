@@ -5,10 +5,12 @@ import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, PartyPopper } from 'lucide-react'
 import { HuddleLogo } from '../../src/components/huddle-logo'
 import { MemberAvatar } from '../../src/components/member-avatar'
+import { useUser } from "@/lib/useUser"
 
 export default function TimeFoundPage() {
   const searchParams = useSearchParams()
   const groupId = searchParams.get('groupId')
+  const { user } = useUser()
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -21,9 +23,9 @@ export default function TimeFoundPage() {
         </div>
 
         <MemberAvatar
-          name="Matt"
-          index={2}
-          className="h-11 w-11 text-sm"
+            name={user?.user_metadata?.full_name ?? "User"}
+            index={2}
+            className="h-11 w-11 text-sm"
         />
       </header>
 

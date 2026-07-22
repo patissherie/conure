@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, MapPin, DollarSign, Car, Heart, ThumbsDown, Star } from 'lucide-react'
 import { HuddleLogo } from '../../src/components/huddle-logo'
 import { MemberAvatar } from '../../src/components/member-avatar'
+import { useUser } from "@/lib/useUser"
 
 type Recommendation = {
   name: string
@@ -149,6 +150,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 function RecommendationsContent() {
+  const { user } = useUser()
   const router = useRouter()
   const searchParams = useSearchParams()
   const category = searchParams.get('category')
@@ -179,7 +181,11 @@ function RecommendationsContent() {
           <HuddleLogo className="h-7 w-7" />
           <span className="font-serif text-xl font-bold text-foreground">Huddle</span>
         </div>
-        <MemberAvatar name="Matt" index={2} className="h-11 w-11 text-sm" />
+        <MemberAvatar
+            name={user?.user_metadata?.full_name ?? "User"}
+            index={2}
+            className="h-11 w-11 text-sm"
+        />
       </header>
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-16">

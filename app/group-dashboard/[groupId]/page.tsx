@@ -15,6 +15,7 @@ import { SyncProgress } from '../../../src/components/sync-progress'
 import { MemberAvatar } from '../../../src/components/member-avatar'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
+import { useUser } from "@/lib/useUser"
 
 export default function GroupDashboardPage() {
   const params = useParams()
@@ -22,9 +23,10 @@ export default function GroupDashboardPage() {
 
   const [groupName, setGroupName] = useState('')
   const [inviteCode] = useState("X7K9Q2")
-const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
+  const { user } = useUser()
 
   useEffect(() => {
     if (!groupId) return
@@ -75,7 +77,11 @@ const [copied, setCopied] = useState(false)
         </div>
 
         <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-card shadow-sm ring-1 ring-border">
-          <MemberAvatar name="Matt" index={1} className="h-11 w-11 text-sm" />
+          <MemberAvatar
+            name={user?.user_metadata?.full_name ?? "User"}
+            index={1}
+            className="h-11 w-11 text-sm"
+          />
         </div>
       </header>
 

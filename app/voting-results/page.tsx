@@ -1,9 +1,12 @@
+'use client'
+
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, PartyPopper, Calendar, Clock, MapPin, Heart } from "lucide-react"
 import { Button } from "../../src/components/ui/button"
 import { HuddleLogo } from "../../src/components/huddle-logo"
 import { MemberAvatar } from "../../src/components/member-avatar"
+import { useUser } from "@/lib/useUser"
 
 // Hardcoded demo data — replace with real backend data later.
 const result = {
@@ -17,6 +20,7 @@ const result = {
 }
 
 export default function VotingResultsPage() {
+  const { user } = useUser()
   const everyoneVotedYes = result.yesVotes === result.totalMembers
   const votingSummary = everyoneVotedYes
     ? "Everyone voted Yes"
@@ -33,7 +37,7 @@ export default function VotingResultsPage() {
         </div>
 
         <MemberAvatar
-            name="Matt"
+            name={user?.user_metadata?.full_name ?? "User"}
             index={2}
             className="h-11 w-11 text-sm"
         />
