@@ -98,13 +98,13 @@ export default function GroupDashboardPage() {
           <SyncProgress connected={connectedCount} total={members.length} />
 
           <div className="mt-8 flex flex-col items-center gap-3">
-            <Link
-              href="/suggested-time"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-bold text-primary-foreground shadow-[0_12px_24px_-8px_rgba(232,96,76,0.6)] transition-all hover:brightness-105"
-            >
-              <Sparkles className="h-5 w-5" strokeWidth={2.5} />
-              Find Our Time
-            </Link>
+          <Link
+            href={`/suggested-time?groupId=${groupId}`}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-bold text-primary-foreground shadow-[0_12px_24px_-8px_rgba(232,96,76,0.6)] transition-all hover:brightness-105"
+          >
+            <Sparkles className="h-5 w-5" strokeWidth={2.5} />
+            Find Our Time
+          </Link>
             {!everyoneConnected && (
               <p className="text-sm text-muted-foreground">
                 Waiting for everyone to connect their calendars.
