@@ -28,7 +28,7 @@ export function CreateGroupCard() {
   const [created, setCreated] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const inviteCode = "X7K9Q2"; // TODO: CHANGE AFTER JOIN CODE IMPLEMENTED
+  const [inviteCode, setInviteCode] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -107,6 +107,7 @@ export function CreateGroupCard() {
         throw memberError;
       }
 
+      setInviteCode(group.group_code as string);
       setCreated(true);
     } catch (err) {
       console.error('[create-group] failed:', err);
